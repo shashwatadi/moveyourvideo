@@ -1,5 +1,7 @@
 import os
 from flask import Flask, render_template, request
+import csv
+from extract_image import FrameCapture
 app = Flask(__name__)
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -23,10 +25,21 @@ def upload():
 
 	for file in request.files.getlist("file"):
 		print(file)
+		print("Hi/n/n")
+		print(type(file))
+		with open('/home/atman/work/moviecrop/parameters.csv', 'r') as f:
+			reader = csv.reader(f)
+			params = list(reader)
+		params = [[int(i) for i in row] for row in params ]
+
+		
+		print("here\n\n")
 		filename = file.filename
 		destination = "/".join([target, filename])
 		print(destination)
 		file.save(destination)
+		FrameCapture(destination, params)
+		print("$$$DONE$$$")
 	return render_template('complete.html')
 
 
