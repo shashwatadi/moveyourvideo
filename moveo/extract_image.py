@@ -4,23 +4,32 @@ import csv
 import os
 import subprocess
 import shutil
+import ffmpeg
   
 from os.path import isfile, join
-# Function to extract frames 
+
 def FrameCapture(video_file_path, params): 
-	# APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-  	# Path to video file 
+
 	vidObj = cv2.VideoCapture(video_file_path)
+	########################################################
+	input = ffmpeg.input(video_file_path)
+	audio = input.audio
+	# video = input.video
+	# print(type(video))
+	# out = ffmpeg.output(audio, video, 'out.mp4')
+	########################################################
+
 	fps = vidObj.get(cv2.CAP_PROP_FPS)
-	print("FPS : ")
-	print(fps)
+	print("FPS : {}".format(fps))
 
 	audio_path = "audio.mp3"
 	if os.path.exists(audio_path):
 		os.remove(audio_path)
-	command = "ffmpeg -i {} -ab 160k -ac 2 -ar 44100 -vn {}".format(video_file_path, audio_path)
-	FNULL = open(os.devnull, 'w')
-	subprocess.call(command, shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
+
+	# get audio from video file
+	# command = "ffmpeg -i {} -ab 160k -ac 2 -ar 44100 -vn {}".format(video_file_path, audio_path)
+	# FNULL = open(os.devnull, 'w')
+	# subprocess.call(command, shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
 
 	# Used as counter variable 
 	count = -1
@@ -31,14 +40,6 @@ def FrameCapture(video_file_path, params):
 		param[1]=int(param[1]*fps)
 	i=0
 
-  # checks whether frames were extracted 
-	success = 1
-	# path = "/home/atman/work/moviecrop/sample_video_photos/KaiseHua/"
-	# if os.path.exists(path):
-	# 	shutil.rmtree(path)
-	# os.mkdir(path)
-
-	# read first frame
 	success, image = vidObj.read()
 
 	center_y = int((image.shape[0]/2)*0.975)	
@@ -52,7 +53,7 @@ def FrameCapture(video_file_path, params):
 	if os.path.exists(pathOut):
 		os.remove(pathOut)
 	out = cv2.VideoWriter(pathOut,cv2.VideoWriter_fourcc(*'DIVX'), fps/2, size)
-
+	# success=0
 	while success:
 
 		count += 1
@@ -77,23 +78,23 @@ def FrameCapture(video_file_path, params):
 			print(count)
 		image = image[center_y-height:center_y+height,center_x-width:center_x+width]
 		out.write(image)
-		# cv2.imwrite("{}frame{}.jpg".format(path, count), image)
 
 	print("Video ban gya")
 	out.release()
 
 	print("\nFRAMES CREATED\n")
-	
-	# convert_frames_to_video(path,tempPath,fps/2)
-
 
 	if os.path.exists("FINAL1.mp4"):
 		os.remove("FINAL1.mp4")
 
 	#add audio
-	command = "ffmpeg -i {} -i Kaisehua2.mp3 -c copy -map 0:v -map 1:a FINAL1.mp4".format(pathOut)
-	subprocess.call(command, shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
-
+	# command = "ffmpeg -i {} -i Kaisehua2.mp3 -c copy -map 0:v -map 1:a FINAL1.mp4".format(pathOut)
+	# subprocess.call(command, shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
+	input = ffmpeg.input(pathOut)
+	video = input.video
+	out = ffmpeg.output(audio, video, 'FINAL.mp4')
+	print("saved video")
+	ffmpeg.run(out)
 
 # Driver Code 
 if __name__ == '__main__': 
@@ -104,10 +105,7 @@ if __name__ == '__main__':
 	    reader = csv.reader(f)
 	    params = list(reader)
 	params = [[float(i) for i in row] for row in params ]
-	# params = [[50,80,-5,-5]]
-	# params.append([160,200,10,0])
-	print(params)
-	
+	print("read the parameters")
 	video_file_path = "/home/atman/work/moviecrop/input_video.mp4"
 	FrameCapture(video_file_path, params) 
 
