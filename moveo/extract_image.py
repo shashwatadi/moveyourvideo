@@ -5,6 +5,10 @@ import os
 import subprocess
 import shutil
 import ffmpeg
+
+import cvlib as cv
+from cvlib.object_detection import draw_bbox
+
   
 from os.path import isfile, join
 
@@ -77,6 +81,9 @@ def FrameCapture(video_file_path, params):
 		if(count%100==0):
 			print(count)
 		image = image[center_y-height:center_y+height,center_x-width:center_x+width]
+		if(count%30==0):
+			bbox, label, conf = cv.detect_common_objects(image)
+		image = draw_bbox(image, bbox, label, conf)
 		out.write(image)
 
 	print("Video ban gya")
